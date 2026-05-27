@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="options.css">
+  <title>WhichCard — Settings</title>
+</head>
+<body>
+  <div class="page">
+    <header class="page-header">
+      <div class="header-left">
+        <h1>WhichCard</h1>
+        <p class="subtitle">Settings &amp; preferences</p>
+      </div>
+      <div class="header-right">AppCaddy</div>
+    </header>
+
+    <main class="settings-body">
+
+      <!-- GENERAL -->
+      <section class="settings-section">
+        <h2>General</h2>
+
+        <div class="settings-card">
+
+          <div class="setting-row" id="row-darkMode">
+            <div class="setting-info">
+              <label class="setting-label" for="darkMode">Dark mode</label>
+              <p class="setting-desc">Switch between dark and light themes across the popup and settings.</p>
+            </div>
+            <input type="checkbox" id="darkMode" class="toggle-input">
+            <label for="darkMode" class="toggle"></label>
+          </div>
+
+          <div class="setting-row" id="row-openAsSidebar">
+            <div class="setting-info">
+              <label class="setting-label" for="openAsSidebar">Open as sidebar</label>
+              <p class="setting-desc">Use Chrome's side panel instead of a toolbar popup. Both are always available — this sets which opens by default.</p>
+            </div>
+            <input type="checkbox" id="openAsSidebar" class="toggle-input">
+            <label for="openAsSidebar" class="toggle"></label>
+          </div>
+
+          <div class="setting-row" id="row-allow5Digit">
+            <div class="setting-info">
+              <label class="setting-label" for="allow5Digit">Allow 5-digit card numbers</label>
+              <p class="setting-desc">Accept 4 or 5 digits for all card types. Amex always allows 5 digits regardless of this setting.</p>
+            </div>
+            <input type="checkbox" id="allow5Digit" class="toggle-input">
+            <label for="allow5Digit" class="toggle"></label>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- CARD FIELDS -->
+      <section class="settings-section">
+        <h2>Card Fields</h2>
+
+        <div class="settings-card">
+
+          <div class="setting-row" id="row-enableCVV">
+            <div class="setting-info">
+              <label class="setting-label" for="enableCVV">Store CVV with each card</label>
+              <p class="setting-desc">Adds a CVV field to each saved card. Stored locally in your browser, synced via your Google account. Only enable this if you are the sole user of this browser profile.</p>
+            </div>
+            <input type="checkbox" id="enableCVV" class="toggle-input">
+            <label for="enableCVV" class="toggle"></label>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- NOTES -->
+      <section class="settings-section">
+        <h2>Notes</h2>
+
+        <div class="settings-card">
+
+          <div class="setting-row" id="row-enableNotes">
+            <div class="setting-info">
+              <label class="setting-label" for="enableNotes">Enable additional notes</label>
+              <p class="setting-desc">Adds a Notes button to each card for up to 3 reward categories or spending tips.</p>
+            </div>
+            <input type="checkbox" id="enableNotes" class="toggle-input">
+            <label for="enableNotes" class="toggle"></label>
+          </div>
+
+          <div class="setting-row setting-sub hidden" id="row-notesDisplay">
+            <div class="setting-info">
+              <label class="setting-label">Notes style</label>
+              <p class="setting-desc">How notes appear when you click the Notes button.</p>
+            </div>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="notesDisplay" value="inline"> Inline
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="notesDisplay" value="onclick"> Popup
+              </label>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECURITY -->
+      <section class="settings-section">
+        <h2>Security</h2>
+
+        <div class="settings-card">
+
+          <div class="setting-row" id="row-enablePin">
+            <div class="setting-info">
+              <label class="setting-label" for="enablePin">Require PIN to open</label>
+              <p class="setting-desc">Prompts for a PIN each time the extension opens. PIN is stored locally in this browser only, not synced.</p>
+            </div>
+            <input type="checkbox" id="enablePin" class="toggle-input">
+            <label for="enablePin" class="toggle"></label>
+          </div>
+
+          <div class="setting-row setting-sub hidden" id="row-pinSetup">
+            <div class="setting-info">
+              <label class="setting-label">PIN or password</label>
+              <p class="setting-desc">4–16 characters. Letters and digits allowed.</p>
+            </div>
+            <div id="pinSetWrap" class="pin-set-wrap"></div>
+          </div>
+
+          <div class="setting-row setting-sub hidden" id="row-pinTimeout">
+            <div class="setting-info">
+              <label class="setting-label" for="pinTimeout">Lock timeout</label>
+              <p class="setting-desc">How long after unlocking before the PIN is required again.</p>
+            </div>
+            <select id="pinTimeout" class="setting-select">
+              <option value="everytime">Every time</option>
+              <option value="30s">30 seconds</option>
+              <option value="1m">1 minute</option>
+              <option value="2m">2 minutes</option>
+              <option value="5m">5 minutes</option>
+              <option value="30m">30 minutes</option>
+              <option value="1h">1 hour</option>
+              <option value="daily">Daily</option>
+            </select>
+          </div>
+
+          <div class="setting-row setting-sub hidden" id="row-pinDaily">
+            <div class="setting-info">
+              <label class="setting-label">Daily lock time</label>
+              <p class="setting-desc">PIN required once per day, after this time in the selected timezone.</p>
+            </div>
+            <div class="daily-lock-wrap">
+              <input type="time" id="pinDailyTime" class="setting-input time-input">
+              <select id="pinDailyTZ" class="setting-select tz-select"></select>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- DATA & PRIVACY -->
+      <section class="settings-section">
+        <h2>Data &amp; Privacy</h2>
+
+        <div class="settings-card">
+          <div class="data-actions">
+            <button class="data-btn" id="exportBtn">Export cards (JSON)</button>
+            <button class="data-btn" id="importBtn">Import cards (JSON)</button>
+            <button class="data-btn danger" id="clearBtn">Clear all data</button>
+          </div>
+
+          <p class="privacy-statement">
+            WhichCard stores your card labels and preferences in your browser only.
+            No card numbers are stored — only SHA-256 hashes of the last 4 or 5 digits.
+            Nothing is sent to any server. No analytics. No tracking pixels. No backend.
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="page-footer">
+      <p class="autosave-note">Changes save automatically.</p>
+      <p class="colophon">Published by AppCaddy. Author, Andrew Ryan.</p>
+    </footer>
+  </div>
+
+  <input type="file" id="importFile" accept=".json" style="display:none">
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+/* WhichCard Popup — AppCaddy design system */
+
+:root {
+  --bg-page:     #F4F5F4;
+  --bg-card:     #fff;
+  --bg-input:    #F4F5F4;
+  --bg-hover:    #EAF1F1;
+  --text:        #141414;
+  --text-muted:  #5E5E5E;
+  --border:      #E0E2E0;
+  --accent:      #3D7575;
+  --accent-h:    #2C5858;
+  --accent-tint: #EAF1F1;
+  --toggle-off:  #E0E2E0;
+  --toggle-on:   #3D7575;
+  --danger:      #9B3A3A;
+}
+
+[data-theme="dark"] {
+  --bg-page:     #141414;
+  --bg-card:     #1E1E1E;
+  --bg-input:    #252525;
+  --bg-hover:    #1A2E2E;
+  --text:        #EBEBEB;
+  --text-muted:  #888;
+  --border:      #2A2A2A;
+  --accent:      #5FA8A8;
+  --accent-h:    #4D9090;
+  --accent-tint: #1A2E2E;
+  --toggle-off:  #3A3A3A;
+  --toggle-on:   #5FA8A8;
+  --danger:      #C05050;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 360px;
+  max-height: 580px;
+  overflow-y: auto;
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg-page);
+  transition: background 200ms ease-out, color 200ms ease-out;
+}
+
+/* ── Lock screen ─────────────────────────────────────────────────────────── */
+.lock-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 240px; padding: 32px 24px;
+  background: var(--bg-page);
+}
+.lock-body {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; text-align: center; width: 100%;
+}
+.lock-icon    { font-size: 30px; }
+.lock-title   { font-size: 16px; font-weight: 700; color: var(--text); font-family: "Syne", sans-serif; }
+.lock-sub     { font-size: 12px; color: var(--text-muted); }
+
+.pin-entry-input {
+  width: 180px; padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: 6px;
+  font-family: "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 18px; color: var(--text); background: var(--bg-input);
+  text-align: center; letter-spacing: 4px; outline: none;
+  transition: border-color 120ms ease-out;
+}
+.pin-entry-input:focus { border-color: var(--accent); background: var(--bg-card); }
+
+.pin-error {
+  font-size: 11px; color: var(--danger);
+}
+
+.pin-submit-btn {
+  width: 120px; padding: 8px 0;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: 6px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 120ms ease-out;
+}
+.pin-submit-btn:hover { background: var(--accent-h); }
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 9px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.header-brand { display: flex; flex-direction: column; gap: 1px; }
+
+.header h1 {
+  font-family: "Syne", "DM Sans", -apple-system, sans-serif;
+  font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
+  color: var(--text);
+}
+
+.header-appcaddy {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.header-actions { display: flex; gap: 2px; }
+
+.icon-btn {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none; border-radius: 6px;
+  color: var(--text-muted); cursor: pointer; font-size: 15px;
+  transition: background 120ms ease-out, color 120ms ease-out;
+}
+.icon-btn:hover { background: var(--accent-tint); color: var(--accent); }
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.empty-state {
+  padding: 28px 16px; text-align: center;
+  font-size: 13px; color: var(--text-muted); line-height: 1.5;
+}
+.empty-state p:first-child {
+  font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 8px;
+}
+
+/* ── Card list ───────────────────────────────────────────────────────────── */
+.card-list {
+  padding: 2px 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.card-item {
+  display: flex; align-items: flex-start; gap: 5px;
+  padding: 7px 10px 7px 2px;
+  border-bottom: 1px solid var(--border);
+  transition: opacity 120ms ease-out, background 120ms ease-out;
+}
+.card-item:last-child { border-bottom: none; }
+.card-item.dragging   { opacity: 0.35; }
+.card-item.drag-over  { border-top: 2px solid var(--accent); }
+
+/* Drag handle */
+.card-drag-handle {
+  display: flex; align-items: center; justify-content: center;
+  width: 13px; min-height: 34px; flex-shrink: 0;
+  color: var(--border); font-size: 13px;
+  cursor: grab; user-select: none;
+  transition: color 120ms ease-out;
+}
+.card-drag-handle:hover { color: var(--text-muted); }
+
+/* Color wrap + dot */
+.color-wrap { position: relative; flex-shrink: 0; }
+
+.card-color {
+  width: 9px; height: 9px; border-radius: 50%;
+  margin-top: 5px; cursor: pointer;
+  border: 1px solid rgba(128,128,128,0.25);
+  transition: transform 120ms ease-out;
+}
+.card-color:hover { transform: scale(1.35); }
+
+/* Color picker */
+.color-picker {
+  display: none; position: absolute; top: 18px; left: -5px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px; gap: 4px; flex-wrap: wrap;
+  width: 86px; z-index: 200;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.color-picker.visible { display: flex; }
+.color-swatch {
+  width: 15px; height: 15px; border-radius: 50%;
+  cursor: pointer; border: 1px solid rgba(128,128,128,0.2);
+  transition: transform 120ms ease-out;
+}
+.color-swatch:hover   { transform: scale(1.25); }
+.color-swatch.selected { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Card info */
+.card-info { flex: 1; min-width: 0; }
+
+.card-top-row    { display: flex; align-items: center; gap: 6px; margin-bottom: 1px; }
+.card-bottom-row { display: flex; align-items: center; gap: 7px; margin-top: 1px; }
+
+/* Network button */
+.card-network-btn {
+  flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
+  border-radius: 3px; transition: filter 120ms ease-out;
+}
+.card-network-btn:hover { filter: brightness(1.08); }
+.card-network-btn svg { display: block; }
+
+/* Network picker popup */
+.net-picker-popup,
+.add-net-picker {
+  position: fixed;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px;
+  z-index: 9999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  width: 170px; max-height: 310px; overflow-y: auto;
+}
+.net-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 8px; border-radius: 4px; cursor: pointer;
+  transition: background 120ms ease-out;
+}
+.net-option:hover    { background: var(--bg-hover); }
+.net-option.selected { background: var(--accent-tint); border-left: 2px solid var(--accent); }
+.net-option-icon  { display: flex; align-items: center; flex-shrink: 0; }
+.net-option-icon svg { display: block; }
+.net-option-label { font-size: 12px; font-weight: 500; color: var(--text); }
+
+/* Nickname input */
+.card-nickname {
+  font-size: 14px; font-weight: 500; color: var(--text);
+  border: none; background: transparent; padding: 0;
+  width: 100%; font-family: inherit; outline: none;
+}
+.card-nickname:focus { border-bottom: 1px solid var(--accent); }
+.card-nickname::placeholder { color: var(--text-muted); font-style: italic; }
+
+/* Digits + reward */
+.card-digits {
+  font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+  font-family: "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+}
+.card-reward {
+  font-size: 11px; color: var(--text-muted);
+  border: none; background: transparent;
+  padding: 0; font-family: inherit; outline: none; flex: 1; min-width: 0;
+}
+.card-reward:focus { border-bottom: 1px solid var(--accent); color: var(--text); }
+.card-reward::placeholder { color: var(--border); }
+
+/* Right column — holds CVV on top, notes toggle on bottom, always the same width */
+.card-right-col {
+  display: flex; flex-direction: column; align-items: flex-end;
+  justify-content: center; gap: 3px; flex-shrink: 0;
+}
+
+/* CVV section */
+.cvv-section {
+  display: flex; align-items: center; gap: 4px;
+}
+.cvv-input {
+  width: 50px; padding: 2px 5px;
+  border: 1px solid var(--border); border-radius: 4px;
+  font-family: "JetBrains Mono", Menlo, Consolas, monospace;
+  font-size: 12px; color: var(--text); background: var(--bg-input);
+  outline: none; text-align: center; letter-spacing: 2px;
+  transition: border-color 120ms ease-out;
+}
+.cvv-input:focus { border-color: var(--accent); background: var(--bg-card); }
+.cvv-eye {
+  background: transparent; border: none; cursor: pointer;
+  font-size: 12px; color: var(--text-muted); padding: 1px;
+  transition: color 120ms ease-out;
+}
+.cvv-eye:hover { color: var(--accent); }
+
+/* Floating notes popup (onclick mode) */
+.notes-popup {
+  position: fixed;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  z-index: 9999;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  min-width: 210px; max-width: 260px;
+}
+.notes-popup .notes-section { margin-top: 0; }
+
+/* Notes section (inline) */
+.notes-section { margin-top: 4px; display: flex; flex-direction: column; gap: 3px; }
+.note-row { display: flex; }
+.note-input {
+  width: 100%; font-size: 11px; color: var(--text);
+  border: none; border-bottom: 1px solid var(--border);
+  background: transparent; padding: 2px 0; font-family: inherit; outline: none;
+  transition: border-color 120ms ease-out;
+}
+.note-input:focus { border-bottom-color: var(--accent); }
+.note-input::placeholder { color: var(--border); }
+
+/* Notes button (on-click mode) — lives in the right column, below CVV */
+.notes-toggle-btn {
+  display: inline-flex; align-items: center;
+  padding: 1px 6px;
+  font-family: inherit; font-size: 10px; font-weight: 500;
+  color: var(--text-muted); background: transparent;
+  border: 1px solid var(--border); border-radius: 4px;
+  cursor: pointer; transition: color 120ms ease-out, border-color 120ms ease-out;
+  white-space: nowrap;
+}
+.notes-toggle-btn:hover { color: var(--accent); border-color: var(--accent); }
+.notes-toggle-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-tint); }
+
+/* Delete button */
+.card-delete {
+  flex-shrink: 0; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: none; border-radius: 4px;
+  color: var(--border); cursor: pointer; font-size: 14px; margin-top: 1px;
+  transition: color 120ms ease-out, background 120ms ease-out;
+}
+.card-delete:hover { color: var(--danger); background: rgba(155,58,58,0.08); }
+
+/* ── Add card ─────────────────────────────────────────────────────────────── */
+.add-card {
+  padding: 8px 14px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.add-card-row { display: flex; align-items: center; gap: 6px; }
+
+.add-network-btn {
+  flex-shrink: 0; cursor: pointer; display: flex; align-items: center;
+  border-radius: 3px; padding: 2px;
+  transition: background 120ms ease-out;
+}
+.add-network-btn:hover { background: var(--bg-hover); }
+.add-network-btn svg { display: block; }
+
+.add-card-row input {
+  font-family: inherit; font-size: 13px;
+  padding: 5px 7px; border: 1px solid var(--border); border-radius: 4px;
+  outline: none; color: var(--text); background: var(--bg-input);
+  transition: border-color 120ms ease-out;
+}
+.add-card-row input:focus { border-color: var(--accent); background: var(--bg-card); }
+
+.digits-input {
+  width: 56px;
+  font-family: "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+  text-align: center; letter-spacing: 1px;
+}
+.name-input { flex: 1; }
+.add-hint { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 14px; border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.privacy-badge {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--text-muted);
+}
+.privacy-badge .shield { font-size: 11px; color: #3A7A4A; }
+.footer-actions { display: flex; gap: 4px; }
+.footer-btn {
+  font-family: inherit; font-size: 11px; color: var(--text-muted);
+  background: transparent; border: none; padding: 4px 7px;
+  border-radius: 4px; cursor: pointer;
+  transition: color 120ms ease-out, background 120ms ease-out;
+}
+.footer-btn:hover { color: var(--accent); background: var(--accent-tint); }
+
+/* ── Scrollbars ──────────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
+
+.card-list::-webkit-scrollbar,
+.net-picker-popup::-webkit-scrollbar,
+body::-webkit-scrollbar                 { width: 4px; }
+.card-list::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track           { background: transparent; }
+.card-list::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb           { background: var(--border); border-radius: 2px; }
+.card-list::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover     { background: var(--text-muted); }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Lock screen — rendered before main content when PIN is active -->
+  <div id="lockScreen" class="lock-screen hidden">
+    <div class="lock-body">
+      <div class="lock-icon">&#x1F512;</div>
+      <p class="lock-title">WhichCard</p>
+      <p class="lock-sub">Enter your PIN to continue</p>
+      <input type="password" id="pinEntry" class="pin-entry-input" placeholder="PIN"
+             maxlength="16" autocomplete="off">
+      <p id="pinError" class="pin-error hidden">Incorrect PIN</p>
+      <button id="pinSubmit" class="pin-submit-btn">Unlock</button>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="header-brand">
+      <h1>WhichCard</h1>
+      <span class="header-appcaddy">AppCaddy</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="refreshBtn" title="Rescan page">&#x21bb;</button>
+      <button class="icon-btn" id="settingsBtn" title="Settings">&#x2699;</button>
+    </div>
+  </div>
+
+  <div id="cardList" class="card-list"></div>
+
+  <div id="emptyState" class="empty-state hidden">
+    <p>No cards saved yet</p>
+    <p>Add a card below, or visit a payment page and click "+ Name this card" next to any card number.</p>
+  </div>
+
+  <div class="add-card">
+    <div class="add-card-row">
+      <span class="add-network-btn" id="addNetworkBtn" title="Select card type"></span>
+      <input type="text" id="newDigits" class="digits-input" placeholder="1234" maxlength="4" inputmode="numeric">
+      <input type="text" id="newName" class="name-input" placeholder="Card name">
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="privacy-badge">
+      <span class="shield">&#x1f6e1;</span>
+      <span>Your labels never leave your browser.</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
