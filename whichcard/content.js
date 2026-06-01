@@ -7,6 +7,10 @@
   const api = typeof browser !== 'undefined' ? browser : chrome;
   const PROCESSED_ATTR = 'data-whichcard';
   const SCAN_DEBOUNCE = 400;
+  // Amazon checkout: tracks which last-4 spans have been processed to avoid double-injection
+  const AMAZON_INJECTED = 'data-cardnamer-injected';
+  // Containers on Amazon that break layout when a label is injected inside them
+  const AMAZON_SKIP = '.pmts-instrument-selector,.a-radio,.a-label,.a-radio-label';
 
   // Patterns that match masked card numbers with trailing 4-5 digits
   const CARD_PATTERNS = [
@@ -182,6 +186,8 @@
       }
 
       if (!hasPaymentContext(target)) continue;
+      // Skip Amazon radio/label containers — handled by the Amazon-specific pass
+      if (target.closest && target.closest(AMAZON_SKIP)) continue;
 
       // Group by digits + approximate vertical position
       const rect = target.getBoundingClientRect();
@@ -257,6 +263,7 @@
     input.type = 'text';
     input.placeholder = 'Card name';
     input.setAttribute('autocomplete', 'off');
+    input.setAttribute('data-last4', digits);
 
     const hint = document.createElement('span');
     hint.className = 'whichcard-editor-hint';
@@ -272,6 +279,13 @@
       targetElement.insertAdjacentElement('afterend', editor);
     }
     input.focus();
+
+    // Sync value to any other open editors for the same card digits
+    input.addEventListener('input', () => {
+      document.querySelectorAll(`.whichcard-editor input[data-last4="${digits}"]`).forEach(other => {
+        if (other !== input) other.value = input.value;
+      });
+    });
 
     input.addEventListener('keydown', async (e) => {
       if (e.key === 'Enter' && input.value.trim()) {
@@ -340,6 +354,10 @@
   function clearAllLabels() {
     document.querySelectorAll(OUR_ELEMENTS).forEach(el => el.remove());
     document.querySelectorAll(`[${PROCESSED_ATTR}]`).forEach(el => el.removeAttribute(PROCESSED_ATTR));
+    document.querySelectorAll(`[${AMAZON_INJECTED}]`).forEach(el => {
+      el.removeAttribute(AMAZON_INJECTED);
+      el.removeAttribute('data-last4');
+    });
   }
 
   // Lookup a card by digits, trying both 4 and 5 digit hashes
@@ -365,9 +383,63 @@
     return null;
   }
 
+  // Amazon checkout: inject exactly one label/add-button per visible last-4 span,
+  // skipping spans inside radio containers that break page layout
+  async function processAmazonCards(cards) {
+    const candidates = document.querySelectorAll('span[data-number], span.pmts-cc-number');
+    if (!candidates.length) return;
+
+    for (const span of candidates) {
+      if (!span.offsetParent) continue;
+      if (span.closest(AMAZON_SKIP)) continue;
+      if (span.getAttribute(AMAZON_INJECTED) === 'true') continue;
+
+      let digits = span.getAttribute('data-number') || '';
+      if (!/^\d{4,5}$/.test(digits)) {
+        // .pmts-selected rows may omit data-number; fall back to trailing digits in text
+        const text = span.textContent.trim();
+        const m = text.match(/(\d{4,5})$/);
+        digits = m ? m[1] : '';
+      }
+      if (!/^\d{4,5}$/.test(digits)) continue;
+
+      span.setAttribute(AMAZON_INJECTED, 'true');
+      span.setAttribute('data-last4', digits);
+
+      const result = await lookupCard(digits, cards);
+
+      if (result) {
+        const label = createLabel(result.card);
+        span.insertAdjacentElement('afterend', label);
+        span.setAttribute(PROCESSED_ATTR, result.hash);
+      } else {
+        const addBtn = createAddButton(digits, span);
+        span.insertAdjacentElement('afterend', addBtn);
+        span.setAttribute(PROCESSED_ATTR, 'pending');
+      }
+    }
+  }
+
   // Process all detected card elements
   async function processPage() {
+    // Check excluded sites before any injection
+    const syncData = await new Promise(r => api.storage.sync.get('excludedSites', r));
+    const excludedSites = syncData.excludedSites || [];
+    if (excludedSites.length) {
+      const url = window.location.href;
+      const domain = window.location.hostname;
+      const isExcluded = excludedSites.some(e =>
+        (e.type === 'domain' && e.value === domain) ||
+        (e.type === 'url' && e.value === url)
+      );
+      if (isExcluded) return;
+    }
+
     const cards = await getCards();
+
+    // Amazon-specific pass runs first so the general walker skips already-marked spans
+    await processAmazonCards(cards);
+
     const elements = findCardElements();
 
     for (const { element, digits } of elements) {
@@ -424,7 +496,7 @@
 
   // Listen for storage changes
   api.storage.onChanged.addListener((changes) => {
-    if (changes.cards) {
+    if (changes.cards || changes.excludedSites) {
       clearAllLabels();
       processPage();
     }

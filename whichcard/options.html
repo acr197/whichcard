@@ -159,6 +159,28 @@
         </div>
       </section>
 
+      <!-- EXCLUDED SITES -->
+      <section class="settings-section">
+        <h2>Excluded Sites</h2>
+
+        <div class="settings-card">
+          <div id="excludedSitesList" class="excluded-sites-list"></div>
+          <div class="excluded-sites-add">
+            <input type="text" id="excludeInput" class="setting-input excluded-input" placeholder="domain.com or full URL">
+            <div class="exclude-type-toggle">
+              <label class="radio-option">
+                <input type="radio" name="excludeType" value="domain" checked> Domain
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="excludeType" value="url"> Page
+              </label>
+            </div>
+            <button class="data-btn" id="excludeAddBtn">Add</button>
+            <span id="excludeError" class="exclude-add-error hidden"></span>
+          </div>
+        </div>
+      </section>
+
       <!-- DATA & PRIVACY -->
       <section class="settings-section">
         <h2>Data &amp; Privacy</h2>

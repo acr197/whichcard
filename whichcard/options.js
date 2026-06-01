@@ -70,6 +70,56 @@ async function getCards() {
   return new Promise(r => api.storage.sync.get('cards', res => r(res.cards || {})));
 }
 
+async function getExcludedSites() {
+  return new Promise(r => api.storage.sync.get('excludedSites', res => r(res.excludedSites || [])));
+}
+
+async function saveExcludedSites(sites) {
+  return new Promise(r => api.storage.sync.set({ excludedSites: sites }, r));
+}
+
+function renderExcludedSites(sites) {
+  const list = document.getElementById('excludedSitesList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  if (!sites.length) {
+    const empty = document.createElement('p');
+    empty.className = 'excluded-empty';
+    empty.textContent = 'No sites excluded yet.';
+    list.appendChild(empty);
+    return;
+  }
+
+  sites.forEach((site, i) => {
+    const row = document.createElement('div');
+    row.className = 'excluded-site-row';
+
+    const badge = document.createElement('span');
+    badge.className = 'excluded-type-badge';
+    badge.textContent = site.type === 'domain' ? 'Domain' : 'Page';
+
+    const val = document.createElement('span');
+    val.className = 'excluded-value';
+    val.textContent = site.value;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'excluded-remove-btn';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', async () => {
+      const current = await getExcludedSites();
+      current.splice(i, 1);
+      await saveExcludedSites(current);
+      renderExcludedSites(current);
+    });
+
+    row.appendChild(badge);
+    row.appendChild(val);
+    row.appendChild(removeBtn);
+    list.appendChild(row);
+  });
+}
+
 // Apply theme to the page
 function applyTheme(dark) {
   document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
@@ -495,6 +545,41 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       renderGateLocked();
     }
+  }
+
+  // Excluded sites
+  const excludedSites = await getExcludedSites();
+  renderExcludedSites(excludedSites);
+
+  const excludeAddBtn = document.getElementById('excludeAddBtn');
+  if (excludeAddBtn) {
+    excludeAddBtn.addEventListener('click', async () => {
+      const input   = document.getElementById('excludeInput');
+      const errEl   = document.getElementById('excludeError');
+      const typeEl  = document.querySelector('input[name="excludeType"]:checked');
+      const val     = input.value.trim();
+      const type    = typeEl ? typeEl.value : 'domain';
+
+      errEl.classList.add('hidden');
+
+      if (!val) {
+        errEl.textContent = 'Enter a domain or URL.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const current = await getExcludedSites();
+      if (current.some(s => s.type === type && s.value === val)) {
+        errEl.textContent = 'Already in the list.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      current.push({ type, value: val });
+      await saveExcludedSites(current);
+      renderExcludedSites(current);
+      input.value = '';
+    });
   }
 
   // Data actions

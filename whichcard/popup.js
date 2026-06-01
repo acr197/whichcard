@@ -675,6 +675,17 @@ function showLockScreen(onUnlock) {
   });
 }
 
+// ─── Site exclusion ──────────────────────────────────────────────────────────
+async function addExclusion(type, value, panel) {
+  const result = await new Promise(r => api.storage.sync.get('excludedSites', r));
+  const sites = result.excludedSites || [];
+  if (!sites.some(s => s.type === type && s.value === value)) {
+    sites.push({ type, value });
+    await new Promise(r => api.storage.sync.set({ excludedSites: sites }, r));
+  }
+  panel.classList.add('hidden');
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   // Apply theme before anything renders to avoid flash
@@ -723,6 +734,62 @@ function initMain() {
   document.getElementById('refreshBtn').addEventListener('click', () => {
     api.tabs.query({ active: true, currentWindow: true }, tabs => { if (tabs[0]) api.tabs.reload(tabs[0].id); });
   });
+
+  document.getElementById('excludeBtn').addEventListener('click', async () => {
+    const panel = document.getElementById('excludePanel');
+    if (!panel.classList.contains('hidden')) {
+      panel.classList.add('hidden');
+      return;
+    }
+
+    const tabs = await new Promise(r => api.tabs.query({ active: true, currentWindow: true }, r));
+    const tab = tabs[0];
+    if (!tab || !tab.url || !tab.url.startsWith('http')) {
+      panel.innerHTML = '<p class="exclude-note">This page cannot be excluded.</p>';
+      panel.classList.remove('hidden');
+      return;
+    }
+
+    const url = new URL(tab.url);
+    const domain = url.hostname;
+    const fullUrl = tab.url;
+
+    panel.innerHTML = '';
+
+    const info = document.createElement('div');
+    info.className = 'exclude-info';
+    const domainSpan = document.createElement('span');
+    domainSpan.className = 'exclude-domain';
+    domainSpan.textContent = domain;
+    const urlSpan = document.createElement('span');
+    urlSpan.className = 'exclude-url';
+    urlSpan.textContent = fullUrl;
+    info.appendChild(domainSpan);
+    info.appendChild(urlSpan);
+
+    const domainBtn = document.createElement('button');
+    domainBtn.className = 'exclude-choice-btn';
+    domainBtn.textContent = `Exclude all pages on ${domain}`;
+    domainBtn.addEventListener('click', () => addExclusion('domain', domain, panel));
+
+    const pageBtn = document.createElement('button');
+    pageBtn.className = 'exclude-choice-btn';
+    pageBtn.textContent = 'Exclude only this page';
+    pageBtn.addEventListener('click', () => addExclusion('url', fullUrl, panel));
+
+    const cancel = document.createElement('a');
+    cancel.className = 'exclude-cancel';
+    cancel.textContent = 'Cancel';
+    cancel.href = '#';
+    cancel.addEventListener('click', e => { e.preventDefault(); panel.classList.add('hidden'); });
+
+    panel.appendChild(info);
+    panel.appendChild(domainBtn);
+    panel.appendChild(pageBtn);
+    panel.appendChild(cancel);
+    panel.classList.remove('hidden');
+  });
+
   document.getElementById('settingsBtn').addEventListener('click', () => {
     api.runtime.openOptionsPage();
   });

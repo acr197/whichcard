@@ -311,6 +311,86 @@ body {
 .time-input  { width: 140px; }
 .tz-select   { width: 186px; }
 
+/* ── Excluded sites section ────────────────────────────────────────────────── */
+.excluded-sites-list {
+  padding: 8px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.excluded-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.excluded-site-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+.excluded-site-row:last-child { border-bottom: none; }
+
+.excluded-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent-tint);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.excluded-value {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.excluded-remove-btn {
+  font-family: inherit;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 120ms ease-out, border-color 120ms ease-out, background 120ms ease-out;
+}
+.excluded-remove-btn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-tint);
+}
+
+.excluded-sites-add {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.excluded-input { width: 100%; }
+
+.exclude-type-toggle {
+  display: flex;
+  gap: 16px;
+}
+
+.exclude-add-error {
+  font-size: 11px;
+  color: var(--danger);
+}
+
 /* ── Footer ────────────────────────────────────────────────────────────────── */
 .page-footer {
   margin-top: 40px;
