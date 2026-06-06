@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "WhichCard",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "From AppCaddy. Shows your card names next to their last four digits on any payment page.",
   "permissions": ["storage", "activeTab", "sidePanel"],
   "side_panel": {

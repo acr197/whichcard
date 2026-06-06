@@ -32,6 +32,25 @@
   --danger:      #C05050;
 }
 
+/* Auto theme: follow the OS when no explicit light/dark is set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --bg-page:     #141414;
+    --bg-card:     #1E1E1E;
+    --bg-input:    #252525;
+    --bg-hover:    #1A2E2E;
+    --text:        #EBEBEB;
+    --text-muted:  #888;
+    --border:      #2A2A2A;
+    --accent:      #5FA8A8;
+    --accent-h:    #4D9090;
+    --accent-tint: #1A2E2E;
+    --toggle-off:  #3A3A3A;
+    --toggle-on:   #5FA8A8;
+    --danger:      #C05050;
+  }
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
@@ -92,27 +111,33 @@ html, body {
   background: var(--bg-card);
 }
 
-.header-brand { display: flex; flex-direction: column; gap: 1px; }
+.header-brand { display: flex; align-items: center; gap: 8px; }
+
+.brand-icon { flex-shrink: 0; border-radius: 4px; }
 
 .header h1 {
   font-family: "Syne", "DM Sans", -apple-system, sans-serif;
-  font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
-  color: var(--text);
-}
-
-.header-appcaddy {
-  font-size: 10px;
+  font-size: 16px; font-weight: 700; letter-spacing: -0.01em;
   color: var(--accent);
-  font-weight: 500;
 }
 
-.header-actions { display: flex; gap: 2px; }
+.header-actions { display: flex; align-items: center; gap: 2px; }
+
+/* Studio wordmark — rightmost element in the header, after the action icons */
+.appcaddy-wordmark {
+  font-family: "Syne", "DM Sans", -apple-system, sans-serif;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+  color: var(--text-muted); text-decoration: none;
+  margin-left: 6px;
+  transition: color 120ms ease-out;
+}
+.appcaddy-wordmark:hover { color: var(--accent); }
 
 .icon-btn {
-  width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
-  background: transparent; border: none; border-radius: 6px;
-  color: var(--text-muted); cursor: pointer; font-size: 15px;
+  padding: 4px;
+  background: transparent; border: none; border-radius: 4px;
+  color: var(--text-muted); cursor: pointer;
   transition: background 120ms ease-out, color 120ms ease-out;
 }
 .icon-btn:hover { background: var(--accent-tint); color: var(--accent); }

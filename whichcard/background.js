@@ -41,53 +41,46 @@ async function importCards(importData) {
   return merged;
 }
 
-// Read settings with defaults
-async function getSettings() {
+// Read the open-in preference, migrating the legacy openAsSidebar boolean
+async function getOpenIn() {
   return new Promise(r => api.storage.sync.get('settings', res => {
-    r({ openAsSidebar: false, ...(res.settings || {}) });
+    const s = res.settings || {};
+    if (s.openIn !== undefined) return r(s.openIn);
+    return r(s.openAsSidebar ? 'sidebar' : 'popup');
   }));
 }
 
-// Apply sidebar preference
-// Chrome requires BOTH clearing the popup and setPanelBehavior for the side panel to
-// open on action click. When openAsSidebar is off, restore the popup.
-async function applySidebarMode(openAsSidebar) {
-  try {
-    if (openAsSidebar) {
-      // Clear popup so onClicked fires, then tell Chrome to open the panel
-      await chrome.action.setPopup({ popup: '' });
-      if (chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
-        await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
-      }
-    } else {
-      await chrome.action.setPopup({ popup: 'popup.html' });
-      if (chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
-        await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false });
-      }
+// Apply the open-in preference
+// Set the panel behavior first (guarded for Firefox, where sidePanel does not exist),
+// then set the popup unconditionally. The side panel opens on action click only when the
+// popup is cleared, so clear it for sidebar and restore it for popup.
+async function applyOpenIn(openIn) {
+  const useSidebar = openIn === 'sidebar';
+  if (chrome.sidePanel && chrome.sidePanel.setPanelBehavior) {
+    try {
+      await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: useSidebar });
+    } catch (err) {
+      console.warn('WhichCard: setPanelBehavior failed', err);
     }
-  } catch (err) {
-    console.warn('WhichCard: applySidebarMode failed', err);
   }
+  chrome.action.setPopup({ popup: useSidebar ? '' : 'popup.html' });
 }
 
 // Apply on install and startup
 chrome.runtime.onInstalled.addListener(async () => {
-  const settings = await getSettings();
-  await applySidebarMode(settings.openAsSidebar);
+  await applyOpenIn(await getOpenIn());
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  const settings = await getSettings();
-  await applySidebarMode(settings.openAsSidebar);
+  await applyOpenIn(await getOpenIn());
 });
 
 // React to live setting changes from the options page
 api.storage.onChanged.addListener(async (changes, area) => {
   if (area !== 'sync' || !changes.settings) return;
-  const newSettings = changes.settings.newValue || {};
-  if ('openAsSidebar' in newSettings) {
-    await applySidebarMode(newSettings.openAsSidebar);
-  }
+  const s = changes.settings.newValue || {};
+  const openIn = s.openIn !== undefined ? s.openIn : (s.openAsSidebar ? 'sidebar' : 'popup');
+  await applyOpenIn(openIn);
 });
 
 // Message handler
@@ -113,6 +106,10 @@ api.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       case 'exportCards':
         return await getCards();
+
+      case 'setOpenIn':
+        await applyOpenIn(message.openIn);
+        return { ok: true };
 
       default:
         return { error: 'Unknown action' };

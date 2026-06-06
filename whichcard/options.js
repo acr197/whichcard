@@ -4,8 +4,8 @@
 const api = typeof browser !== 'undefined' ? browser : chrome;
 
 const DEFAULTS = {
-  darkMode:      true,
-  openAsSidebar: false,
+  theme:         'system',
+  openIn:        'popup',
   allow5Digit:   false,
   enableCVV:     false,
   enableNotes:   false,
@@ -58,7 +58,18 @@ const TZ_LIST = [
 
 async function getSettings() {
   return new Promise(r => api.storage.sync.get('settings', res => {
-    r({ ...DEFAULTS, ...(res.settings || {}) });
+    const raw = res.settings || {};
+    const s = { ...DEFAULTS, ...raw };
+    // Migrate legacy keys → contract model (one-time, in memory)
+    if (raw.theme === undefined) {
+      s.theme = raw.darkMode === false ? 'light' : (raw.darkMode === true ? 'dark' : 'system');
+    }
+    if (raw.openIn === undefined && raw.openAsSidebar !== undefined) {
+      s.openIn = raw.openAsSidebar ? 'sidebar' : 'popup';
+    }
+    delete s.darkMode;
+    delete s.openAsSidebar;
+    r(s);
   }));
 }
 
@@ -120,9 +131,13 @@ function renderExcludedSites(sites) {
   });
 }
 
-// Apply theme to the page
-function applyTheme(dark) {
-  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+// Apply the chosen theme: explicit light/dark, or system (let the CSS auto-fallback decide)
+function applyTheme(theme) {
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', theme);
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
 }
 
 // Wire a toggle to auto-save on change
@@ -134,6 +149,18 @@ function wireToggle(id, key, settings, onChange) {
     settings[key] = input.checked;
     await saveSettings(settings);
     if (onChange) onChange(input.checked);
+  });
+}
+
+// Wire a select to auto-save on change
+function wireSelect(id, key, settings, onChange) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = settings[key];
+  el.addEventListener('change', async () => {
+    settings[key] = el.value;
+    await saveSettings(settings);
+    if (onChange) onChange(el.value);
   });
 }
 
@@ -386,11 +413,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const settings = await getSettings();
 
   // Apply theme immediately
-  applyTheme(settings.darkMode);
+  applyTheme(settings.theme);
+
+  // Wire Display selects. Send the open-in change to the background directly so it
+  // applies immediately; storage.onChanged stays as a redundant fallback.
+  wireSelect('themeSelect',  'theme',  settings, applyTheme);
+  wireSelect('openInSelect', 'openIn', settings, val => {
+    api.runtime.sendMessage({ action: 'setOpenIn', openIn: val });
+  });
 
   // Wire all toggles
-  wireToggle('darkMode',      'darkMode',      settings, dark => applyTheme(dark));
-  wireToggle('openAsSidebar', 'openAsSidebar', settings);
   wireToggle('allow5Digit',   'allow5Digit',   settings);
   wireToggle('enableCVV',     'enableCVV',     settings);
   wireToggle('enableNotes',   'enableNotes',   settings, on => {
@@ -591,4 +623,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target.files.length) { importCards(e.target.files[0]); e.target.value = ''; }
   });
   document.getElementById('clearBtn').addEventListener('click', clearAllData);
+
+  // Info circles — reveal a short description per setting
+  document.querySelectorAll('.info-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const info = btn.closest('.setting-info').querySelector('.setting-desc');
+      if (!info) return;
+      const isHidden = info.hasAttribute('hidden');
+      if (isHidden) {
+        info.removeAttribute('hidden');
+        btn.setAttribute('aria-expanded', 'true');
+      } else {
+        info.setAttribute('hidden', '');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+
+  // About — version from the manifest, never hardcoded
+  const versionEl = document.getElementById('about-version');
+  if (versionEl) versionEl.textContent = 'v' + api.runtime.getManifest().version;
 });

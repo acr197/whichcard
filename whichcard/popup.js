@@ -3,6 +3,44 @@
 
 const api = typeof browser !== 'undefined' ? browser : chrome;
 
+// ─── Theme ───────────────────────────────────────────────────────────────────
+// Apply the chosen theme: explicit light/dark, or system (let the CSS auto-fallback decide).
+// Also reflect the effective theme in the header sun/moon toggle.
+function applyTheme(theme) {
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', theme);
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  const resolved = (theme === 'light' || theme === 'dark')
+    ? theme
+    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const sun = document.getElementById('icon-sun');
+  const moon = document.getElementById('icon-moon');
+  if (sun) sun.classList.toggle('hidden', resolved === 'dark');
+  if (moon) moon.classList.toggle('hidden', resolved !== 'dark');
+}
+
+// Header toggle flips light <-> dark and persists to settings. Auto lives on the options page.
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const effective = current || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = effective === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  api.storage.sync.get('settings', res => {
+    const raw = res.settings || {};
+    api.storage.sync.set({ settings: { ...raw, theme: next } });
+  });
+}
+
+// Resolve the theme value from a settings object, migrating the legacy darkMode boolean
+function themeFromSettings(s) {
+  if (s.theme !== undefined) return s.theme;
+  if (s.darkMode === false) return 'light';
+  if (s.darkMode === true) return 'dark';
+  return 'system';
+}
+
 // ─── Color palette ──────────────────────────────────────────────────────────
 const COLORS = [
   '#3D7575', '#3A7A4A', '#3060A0', '#9B3A3A',
@@ -57,14 +95,17 @@ async function getCardOrder() {
 }
 async function getSettings() {
   return new Promise(r => api.storage.sync.get('settings', res => {
-    r({
-      darkMode:     true,
+    const raw = res.settings || {};
+    const s = {
+      theme:        'system',
       allow5Digit:  false,
       enableCVV:    false,
       enableNotes:  false,
       notesDisplay: 'inline',
-      ...(res.settings || {})
-    });
+      ...raw
+    };
+    s.theme = themeFromSettings(raw);
+    r(s);
   }));
 }
 async function setCards(cards)     { return new Promise(r => api.storage.sync.set({ cards }, r)); }
@@ -690,7 +731,7 @@ async function addExclusion(type, value, panel) {
 document.addEventListener('DOMContentLoaded', async () => {
   // Apply theme before anything renders to avoid flash
   const initSettings = await getSettings();
-  document.documentElement.setAttribute('data-theme', initSettings.darkMode !== false ? 'dark' : 'light');
+  applyTheme(initSettings.theme);
 
   // Show lock screen if PIN is active; proceed to initMain on successful unlock
   if (await isLocked(initSettings)) {
@@ -699,6 +740,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   initMain();
+});
+
+// Live theme updates — the side panel can stay open while settings change in a tab
+api.storage.onChanged.addListener((changes, area) => {
+  if (area === 'sync' && changes.settings) {
+    applyTheme(themeFromSettings(changes.settings.newValue || {}));
+  }
 });
 
 function initMain() {
@@ -789,6 +837,8 @@ function initMain() {
     panel.appendChild(cancel);
     panel.classList.remove('hidden');
   });
+
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
   document.getElementById('settingsBtn').addEventListener('click', () => {
     api.runtime.openOptionsPage();
